@@ -1,22 +1,30 @@
-const express = require("express");
+const express = require('express');
+const path = require('path');
 const app = express();
-const http = require("http").createServer(app);
-const io = require("socket.io")(http);
 
-app.use(express.static("public"));
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
 
-io.on("connection", socket => {
-  console.log("A user connected");
+const PORT = process.env.PORT || 3000;
 
-  socket.on("move", pieces => {
-    socket.broadcast.emit("move", pieces);
-  });
+// Serve static files from the "public" directory
+app.use(express.static(path.join(__dirname, 'public')));
 
-  socket.on("roll", result => {
-    socket.broadcast.emit("roll", result);
+// For all other routes, send back index.html (if needed for SPA routing)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('A user connected');
+
+  // Add your Socket.IO event handlers here
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
   });
 });
 
-http.listen(3000, () => {
-  console.log("Server running at http://localhost:3000");
+http.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
 });
