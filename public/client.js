@@ -5,7 +5,7 @@ const rollBtn = document.getElementById("rollBtn");
 const diceResult = document.getElementById("diceResult");
 
 // Board config
-const HEX_SIZE = 30;
+const HEX_SIZE = 30;  // radius of hex
 
 // Piece label map for display
 const labelMap = {
@@ -24,7 +24,7 @@ const pieces = [
 
 // HEX math for flat-top hexes
 function hexToPixel(q, r) {
-  const x = HEX_SIZE * Math.sqrt(3) * (q + r/2);
+  const x = HEX_SIZE * Math.sqrt(3) * (q + r / 2);
   const y = HEX_SIZE * 3/2 * r;
   return { x, y };
 }
@@ -54,7 +54,7 @@ function hexRound(q, r) {
 function drawHex(q, r, size = HEX_SIZE, fillStyle = null, strokeStyle = "#000", rotation = 0, highlightEdges = []) {
   const { x, y } = hexToPixel(q, r);
   ctx.save();
-  ctx.translate(canvas.width/2 + x, canvas.height/2 + y);
+  ctx.translate(canvas.width / 2 + x, canvas.height / 2 + y);
   ctx.rotate(rotation * Math.PI / 180);
 
   if (fillStyle) {
@@ -106,11 +106,11 @@ function drawBoard() {
 
   // Draw pieces
   for (const piece of pieces) {
-    // Highlight edges 0,1,2 but rotated by piece.rotation
-    const highlightEdges = [];
-    for (let i = 0; i < 3; i++) {
-      highlightEdges.push((i - piece.rotation / 60 + 6) % 6);
-    }
+    // Highlight edges 0,1,2 but rotated by piece.rotation (integer math!)
+    const baseEdges = [0, 1, 2];
+    const rotationSteps = (piece.rotation / 60) % 6;
+    const highlightEdges = baseEdges.map(e => (e + rotationSteps) % 6);
+
     drawHex(piece.x, piece.y, HEX_SIZE * 0.6, piece.color, "#333", piece.rotation, highlightEdges);
 
     // Draw label (type letter)
@@ -119,7 +119,7 @@ function drawBoard() {
     ctx.font = "14px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(labelMap[piece.type] || "?", canvas.width/2 + x, canvas.height/2 + y);
+    ctx.fillText(labelMap[piece.type] || "?", canvas.width / 2 + x, canvas.height / 2 + y);
   }
 }
 
@@ -127,8 +127,8 @@ function drawBoard() {
 let dragging = null;
 canvas.addEventListener("mousedown", e => {
   const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left - canvas.width/2;
-  const my = e.clientY - rect.top - canvas.height/2;
+  const mx = e.clientX - rect.left - canvas.width / 2;
+  const my = e.clientY - rect.top - canvas.height / 2;
 
   for (const piece of pieces) {
     const { x, y } = hexToPixel(piece.x, piece.y);
@@ -142,8 +142,8 @@ canvas.addEventListener("mousedown", e => {
 canvas.addEventListener("mouseup", e => {
   if (!dragging) return;
   const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left - canvas.width/2;
-  const my = e.clientY - rect.top - canvas.height/2;
+  const mx = e.clientX - rect.left - canvas.width / 2;
+  const my = e.clientY - rect.top - canvas.height / 2;
   const { x, y } = pixelToHex(mx, my);
   dragging.x = x;
   dragging.y = y;
@@ -156,8 +156,8 @@ canvas.addEventListener("mouseup", e => {
 canvas.addEventListener("contextmenu", e => {
   e.preventDefault();
   const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left - canvas.width/2;
-  const my = e.clientY - rect.top - canvas.height/2;
+  const mx = e.clientX - rect.left - canvas.width / 2;
+  const my = e.clientY - rect.top - canvas.height / 2;
 
   for (const piece of pieces) {
     const { x, y } = hexToPixel(piece.x, piece.y);
