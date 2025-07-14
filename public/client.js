@@ -9,22 +9,17 @@ const HEX_SIZE = 30;
 
 // Piece label map for display
 const labelMap = {
-  pawn: "P",
-  knight: "K",
-  bishop: "B",
-  rook: "R",
+  skeleton: "S",
+  ghoul: "G",
+  wraith: "W",
+  construct: "C",
 };
 
 // Initial pieces with rotation (degrees)
 const pieces = [
-  { x: 0, y: 0, color: "red", type: "pawn", rotation: 0 },
-  { x: 2, y: 2, color: "red", type: "pawn", rotation: 0 },
-  { x: -2, y: 1, color: "red", type: "pawn", rotation: 0 },
-  { x: 3, y: -1, color: "blue", type: "knight", rotation: 0 },
-  { x: 4, y: 0, color: "blue", type: "knight", rotation: 0 },
-  { x: 5, y: -2, color: "blue", type: "bishop", rotation: 0 },
-  { x: 2, y: -3, color: "blue", type: "rook", rotation: 0 },
-  { x: 1, y: -2, color: "blue", type: "rook", rotation: 0 },
+  { x: 0, y: 0, color: "blue", type: "skeleton", rotation: 0 },
+  { x: 2, y: 2, color: "blue", type: "skeleton", rotation: 0 },
+  { x: -2, y: 1, color: "blue", type: "skeleton", rotation: 0 },
 ];
 
 // HEX math for flat-top hexes
