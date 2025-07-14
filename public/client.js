@@ -37,17 +37,16 @@ const pieces = [
 
 // HEX math for flat-top hexes
 function hexToPixel(q, r) {
-  const x = HEX_SIZE * Math.sqrt(3) * (q + r / 2);
-  const y = HEX_SIZE * 3/2 * r;
+  const x = HEX_SIZE * 3/2 * q;
+  const y = HEX_SIZE * Math.sqrt(3) * (r + q / 2);
   return { x, y };
 }
 
 function pixelToHex(x, y) {
-  const q = (Math.sqrt(3)/3 * x - 1/3 * y) / HEX_SIZE;
-  const r = (2/3 * y) / HEX_SIZE;
+  const q = (2/3 * x) / HEX_SIZE;
+  const r = (-1/3 * x + Math.sqrt(3)/3 * y) / HEX_SIZE;
   return hexRound(q, r);
 }
-
 function hexRound(q, r) {
   let x = q, z = r, y = -x - z;
   let rx = Math.round(x), ry = Math.round(y), rz = Math.round(z);
@@ -68,7 +67,6 @@ function drawHex(q, r, size = HEX_SIZE, fillStyle = null, strokeStyle = "#000", 
   const { x, y } = hexToPixel(q, r);
   ctx.save();
   ctx.translate(canvas.width / 2 + x, canvas.height / 2 + y);
-  ctx.rotate(rotation * Math.PI / 180);
 
   if (fillStyle) {
     ctx.fillStyle = fillStyle;
@@ -113,7 +111,9 @@ function inHexRadius(q, r, radius) {
 
 function drawBoard() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+  if (piece.type === "player") {
+  piece.color = "red";
+}
   const radius = 6;
   // Loop over a bounding box larger than radius
   for (let q = -radius; q <= radius; q++) {
