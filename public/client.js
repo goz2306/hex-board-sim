@@ -28,16 +28,17 @@ const pieces = [
 ];
 
 function hexToPixel(q, r) {
-  const x = HEX_SIZE * 3/2 * q;
-  const y = HEX_SIZE * Math.sqrt(3) * (r + q / 2);
+  const x = HEX_SIZE * Math.sqrt(3) * (q + r / 2);
+  const y = HEX_SIZE * 3/2 * r;
   return { x, y };
 }
 
 function pixelToHex(x, y) {
-  const q = (2/3 * x) / HEX_SIZE;
-  const r = (-1/3 * x + Math.sqrt(3)/3 * y) / HEX_SIZE;
+  const q = (Math.sqrt(3)/3 * x - 1/3 * y) / HEX_SIZE;
+  const r = (2/3 * y) / HEX_SIZE;
   return hexRound(q, r);
 }
+
 
 function hexRound(q, r) {
   let x = q, z = r, y = -x - z;
@@ -114,6 +115,11 @@ function drawBoard() {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(labelMap[piece.type] || "?", canvas.width / 2 + x, canvas.height / 2 + y);
+
+    ctx.fillStyle = "#000";  // Health text in black
+    ctx.font = "12px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
     ctx.fillText(piece.health.toString(), canvas.width / 2 + x, canvas.height / 2 + y + 18);
   }
 }
