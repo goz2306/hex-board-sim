@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 // Serve static files from the "public" directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// For all other routes, send back index.html (if needed for SPA routing)
+// Fallback to index.html (for SPA routing or default page)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -19,12 +19,20 @@ app.get('*', (req, res) => {
 io.on('connection', (socket) => {
   console.log('A user connected');
 
-  // Add your Socket.IO event handlers here
+  socket.on('move', (data) => {
+    socket.broadcast.emit('move', data);
+  });
+
+  socket.on('roll', (result) => {
+    socket.broadcast.emit('roll', result);
+  });
+
   socket.on('disconnect', () => {
     console.log('User disconnected');
   });
 });
 
+// Start the server
 http.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
