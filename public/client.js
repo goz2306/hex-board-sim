@@ -73,33 +73,32 @@ function drawHex(q, r, size = HEX_SIZE, fillStyle = null, strokeStyle = "#000", 
   if (fillStyle) {
     ctx.fillStyle = fillStyle;
     ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = Math.PI / 180 * (60 * i);
-      const xi = size * Math.cos(angle);
-      const yi = size * Math.sin(angle);
-      if (i === 0) ctx.moveTo(xi, yi);
-      else ctx.lineTo(xi, yi);
-    }
+for (let i = 0; i < 6; i++) {
+  const angle = Math.PI / 180 * (60 * i - 30);
+  const xi = size * Math.cos(angle);
+  const yi = size * Math.sin(angle);
+  if (i === 0) ctx.moveTo(xi, yi);
+  else ctx.lineTo(xi, yi);
+}
     ctx.closePath();
     ctx.fill();
   }
 
   // Draw edges, highlight selected edges in green
-  for (let i = 0; i < 6; i++) {
-    ctx.beginPath();
-    const angle1 = Math.PI / 180 * (60 * i);
-    const angle2 = Math.PI / 180 * (60 * (i + 1));
-    const x1 = size * Math.cos(angle1);
-    const y1 = size * Math.sin(angle1);
-    const x2 = size * Math.cos(angle2);
-    const y2 = size * Math.sin(angle2);
+for (let i = 0; i < 6; i++) {
+  const angle1 = Math.PI / 180 * (60 * i - 30);
+  const angle2 = Math.PI / 180 * (60 * (i + 1) - 30);
+  const x1 = size * Math.cos(angle1);
+  const y1 = size * Math.sin(angle1);
+  const x2 = size * Math.cos(angle2);
+  const y2 = size * Math.sin(angle2);
 
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.strokeStyle = highlightEdges.includes(i) ? "green" : strokeStyle;
-    ctx.lineWidth = highlightEdges.includes(i) ? 3 : 1;
-    ctx.stroke();
-  }
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.strokeStyle = highlightEdges.includes(i) ? "green" : strokeStyle;
+  ctx.lineWidth = highlightEdges.includes(i) ? 3 : 1;
+  ctx.stroke();
+}
 
   ctx.restore();
 }
