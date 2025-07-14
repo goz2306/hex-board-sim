@@ -21,6 +21,7 @@ const labelMap = {
   ghoul: "G",
   wraith: "W",
   construct: "C",
+  player: "P",
 };
 
 // Initial pieces with rotation (degrees)
@@ -28,6 +29,10 @@ const pieces = [
   { x: 0, y: 0, color: "blue", type: "skeleton", rotation: 0 },
   { x: 2, y: 2, color: "blue", type: "skeleton", rotation: 0 },
   { x: -2, y: 1, color: "blue", type: "skeleton", rotation: 0 },
+  { x: 0, y: -3, color: "red", type: "skeleton", rotation: 0 },
+  { x: 2, y: -3, color: "red", type: "skeleton", rotation: 0 },
+  { x: -2, y: -3, color: "red", type: "skeleton", rotation: 0 },
+
 ];
 
 // HEX math for flat-top hexes
@@ -99,29 +104,35 @@ function drawHex(q, r, size = HEX_SIZE, fillStyle = null, strokeStyle = "#000", 
   ctx.restore();
 }
 
+function inHexRadius(q, r, radius) {
+  // cube coordinates: x = q, y = -q - r, z = r
+  const x = q;
+  const z = r;
+  const y = -x - z;
+  return Math.max(Math.abs(x), Math.abs(y), Math.abs(z)) <= radius;
+}
+
 function drawBoard() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Draw hex grid as a big hex (radius 6)
   const radius = 6;
+  // Loop over a bounding box larger than radius
   for (let q = -radius; q <= radius; q++) {
-    const r1 = Math.max(-radius, -q - radius);
-    const r2 = Math.min(radius, -q + radius);
-    for (let r = r1; r <= r2; r++) {
-      drawHex(q, r, HEX_SIZE, null, "#999");
+    for (let r = -radius; r <= radius; r++) {
+      if (inHexRadius(q, r, radius)) {
+        drawHex(q, r, HEX_SIZE, null, "#999");
+      }
     }
   }
 
-  // Draw pieces
+  // Draw pieces as before...
   for (const piece of pieces) {
-    // Highlight edges 0,1,2 but rotated by piece.rotation (integer math!)
     const baseEdges = [0, 1, 2];
     const rotationSteps = (piece.rotation / 60) % 6;
     const highlightEdges = baseEdges.map(e => (e + rotationSteps) % 6);
 
     drawHex(piece.x, piece.y, HEX_SIZE * 0.6, piece.color, "#333", piece.rotation, highlightEdges);
 
-    // Draw label (type letter)
     const { x, y } = hexToPixel(piece.x, piece.y);
     ctx.fillStyle = "#fff";
     ctx.font = "14px sans-serif";
