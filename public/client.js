@@ -37,14 +37,14 @@ const pieces = [
 
 // HEX math for flat-top hexes
 function hexToPixel(q, r) {
-  const x = HEX_SIZE * 3/2 * q;
-  const y = HEX_SIZE * Math.sqrt(3) * (r + q / 2);
+  const x = HEX_SIZE * Math.sqrt(3) * (q + r / 2);
+  const y = HEX_SIZE * 3/2 * r;
   return { x, y };
 }
 
 function pixelToHex(x, y) {
-  const q = (2/3 * x) / HEX_SIZE;
-  const r = (-1/3 * x + Math.sqrt(3)/3 * y) / HEX_SIZE;
+  const q = (Math.sqrt(3)/3 * x - 1/3 * y) / HEX_SIZE;
+  const r = (2/3 * y) / HEX_SIZE;
   return hexRound(q, r);
 }
 function hexRound(q, r) {
@@ -112,7 +112,7 @@ function inHexRadius(q, r, radius) {
 function drawBoard() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
  
-  const radius = 6;
+  const radius = 5;
   // Loop over a bounding box larger than radius
   for (let q = -radius; q <= radius; q++) {
     for (let r = -radius; r <= radius; r++) {
@@ -129,8 +129,8 @@ for (const piece of pieces) {
   }
 
   const baseEdges = [0, 1, 2];
-  const rotationSteps = (piece.rotation / 60) % 6;
-  const highlightEdges = baseEdges.map(e => (e + rotationSteps) % 6);
+const rotationSteps = Math.round((piece.rotation % 360) / 60); // force integer 0–5
+const highlightEdges = baseEdges.map(e => (e + rotationSteps) % 6);
 
   drawHex(piece.x, piece.y, HEX_SIZE * 0.6, piece.color, "#333", piece.rotation, highlightEdges);
 
