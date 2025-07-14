@@ -6,9 +6,24 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <canvas id="board" width="800" height="600"></canvas>
+
+<div id="controls" style="margin-bottom: 10px;">
+  <label for="pieceTypeSelect">Select piece type:</label>
+  <select id="pieceTypeSelect">
+    <option value="pawn" selected>Pawn</option>
+    <option value="knight">Knight</option>
+    <option value="bishop">Bishop</option>
+    <option value="rook">Rook</option>
+  </select>
+  <button id="deleteModeBtn">Toggle Delete Mode</button>
+</div>
+
+<canvas id="board" width="600" height="600" style="border:1px solid #333;"></canvas>
+
+<div style="margin-top: 10px;">
   <button id="rollBtn">Roll Dice</button>
-  <p id="diceResult">Result: -</p>
+  <span id="diceResult">Result: </span>
+</div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="client.js"></script>

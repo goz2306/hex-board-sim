@@ -4,16 +4,40 @@ const ctx = canvas.getContext("2d");
 const rollBtn = document.getElementById("rollBtn");
 const diceResult = document.getElementById("diceResult");
 
+// Board config
 const HEX_SIZE = 30;
+
+// Piece label map for display
+const labelMap = {
+  pawn: "P",
+  knight: "K",
+  bishop: "B",
+  rook: "R",
+};
+
+// Initial pieces with rotation (degrees)
 const pieces = [
-  { x: 0, y: 0, color: "red" },
-  { x: 2, y: 2, color: "blue" }
+  { x: 0, y: 0, color: "red", type: "pawn", rotation: 0 },
+  { x: 2, y: 2, color: "red", type: "pawn", rotation: 0 },
+  { x: -2, y: 1, color: "red", type: "pawn", rotation: 0 },
+  { x: 3, y: -1, color: "blue", type: "knight", rotation: 0 },
+  { x: 4, y: 0, color: "blue", type: "knight", rotation: 0 },
+  { x: 5, y: -2, color: "blue", type: "bishop", rotation: 0 },
+  { x: 2, y: -3, color: "blue", type: "rook", rotation: 0 },
+  { x: 1, y: -2, color: "blue", type: "rook", rotation: 0 },
 ];
 
+// HEX math for flat-top hexes
 function hexToPixel(q, r) {
-  const x = HEX_SIZE * (3/2 * q);
-  const y = HEX_SIZE * (Math.sqrt(3) * (r + q/2));
+  const x = HEX_SIZE * Math.sqrt(3) * (q + r/2);
+  const y = HEX_SIZE * 3/2 * r;
   return { x, y };
+}
+
+function pixelToHex(x, y) {
+  const q = (Math.sqrt(3)/3 * x - 1/3 * y) / HEX_SIZE;
+  const r = (2/3 * y) / HEX_SIZE;
+  return hexRound(q, r);
 }
 
 function hexRound(q, r) {
@@ -31,73 +55,89 @@ function hexRound(q, r) {
   return { x: rx, y: rz };
 }
 
-function pixelToHex(x, y) {
-  const q = (2/3 * x) / HEX_SIZE;
-  const r = ((-1/3 * x) + (Math.sqrt(3)/3 * y)) / HEX_SIZE;
-  return hexRound(q, r);
-}
-
-function drawHex(q, r) {
+// Draw a hex at q,r with optional rotation, size, fill, stroke, and highlighted edges
+function drawHex(q, r, size = HEX_SIZE, fillStyle = null, strokeStyle = "#000", rotation = 0, highlightEdges = []) {
   const { x, y } = hexToPixel(q, r);
-  ctx.beginPath();
-  for (let i = 0; i < 6; i++) {
-    const angle = Math.PI / 180 * (60 * i);
-    const xi = x + HEX_SIZE * Math.cos(angle);
-    const yi = y + HEX_SIZE * Math.sin(angle);
-    if (i === 0) ctx.moveTo(xi, yi);
-    else ctx.lineTo(xi, yi);
-  }
-  ctx.closePath();
-  ctx.stroke();
-}
-
-function drawBoard() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
-  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.translate(canvas.width/2 + x, canvas.height/2 + y);
+  ctx.rotate(rotation * Math.PI / 180);
 
-  // Draw grid radius 5
-  const radius = 5;
-  for (let q = -radius; q <= radius; q++) {
-    for (let r = -radius; r <= radius; r++) {
-      if (Math.abs(q + r) <= radius) drawHex(q, r);
+  if (fillStyle) {
+    ctx.fillStyle = fillStyle;
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const angle = Math.PI / 180 * (60 * i);
+      const xi = size * Math.cos(angle);
+      const yi = size * Math.sin(angle);
+      if (i === 0) ctx.moveTo(xi, yi);
+      else ctx.lineTo(xi, yi);
     }
+    ctx.closePath();
+    ctx.fill();
   }
 
-  // Draw pieces
-  for (let i = 0; i < pieces.length; i++) {
-    const piece = pieces[i];
-    const { x, y } = hexToPixel(piece.x, piece.y);
-
+  // Draw edges, highlight selected edges in green
+  for (let i = 0; i < 6; i++) {
     ctx.beginPath();
-    ctx.arc(x, y, 15, 0, 2 * Math.PI);
-    ctx.fillStyle = piece.color;
-    ctx.fill();
-    ctx.strokeStyle = "#333";
+    const angle1 = Math.PI / 180 * (60 * i);
+    const angle2 = Math.PI / 180 * (60 * (i + 1));
+    const x1 = size * Math.cos(angle1);
+    const y1 = size * Math.sin(angle1);
+    const x2 = size * Math.cos(angle2);
+    const y2 = size * Math.sin(angle2);
+
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = highlightEdges.includes(i) ? "green" : strokeStyle;
+    ctx.lineWidth = highlightEdges.includes(i) ? 3 : 1;
     ctx.stroke();
-
-    ctx.fillStyle = "#fff";
-    ctx.font = "12px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    const label = piece.color === "red" ? "P1" : piece.color === "blue" ? "P2" : `P${i+1}`;
-    ctx.fillText(label, x, y);
   }
 
   ctx.restore();
 }
 
-let dragging = null;
+function drawBoard() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Draw hex grid as a big hex (radius 6)
+  const radius = 6;
+  for (let q = -radius; q <= radius; q++) {
+    const r1 = Math.max(-radius, -q - radius);
+    const r2 = Math.min(radius, -q + radius);
+    for (let r = r1; r <= r2; r++) {
+      drawHex(q, r, HEX_SIZE, null, "#999");
+    }
+  }
+
+  // Draw pieces
+  for (const piece of pieces) {
+    // Highlight edges 0,1,2 but rotated by piece.rotation
+    const highlightEdges = [];
+    for (let i = 0; i < 3; i++) {
+      highlightEdges.push((i - piece.rotation / 60 + 6) % 6);
+    }
+    drawHex(piece.x, piece.y, HEX_SIZE * 0.6, piece.color, "#333", piece.rotation, highlightEdges);
+
+    // Draw label (type letter)
+    const { x, y } = hexToPixel(piece.x, piece.y);
+    ctx.fillStyle = "#fff";
+    ctx.font = "14px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(labelMap[piece.type] || "?", canvas.width/2 + x, canvas.height/2 + y);
+  }
+}
+
+// Drag and drop handling
+let dragging = null;
 canvas.addEventListener("mousedown", e => {
   const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left - canvas.width / 2;
-  const my = e.clientY - rect.top - canvas.height / 2;
+  const mx = e.clientX - rect.left - canvas.width/2;
+  const my = e.clientY - rect.top - canvas.height/2;
 
   for (const piece of pieces) {
     const { x, y } = hexToPixel(piece.x, piece.y);
-    if (Math.hypot(mx - x, my - y) < 15) {
+    if (Math.hypot(mx - x, my - y) < HEX_SIZE * 0.6) {
       dragging = piece;
       break;
     }
@@ -107,8 +147,8 @@ canvas.addEventListener("mousedown", e => {
 canvas.addEventListener("mouseup", e => {
   if (!dragging) return;
   const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left - canvas.width / 2;
-  const my = e.clientY - rect.top - canvas.height / 2;
+  const mx = e.clientX - rect.left - canvas.width/2;
+  const my = e.clientY - rect.top - canvas.height/2;
   const { x, y } = pixelToHex(mx, my);
   dragging.x = x;
   dragging.y = y;
@@ -117,16 +157,37 @@ canvas.addEventListener("mouseup", e => {
   drawBoard();
 });
 
+// Rotate piece on right-click (contextmenu)
+canvas.addEventListener("contextmenu", e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left - canvas.width/2;
+  const my = e.clientY - rect.top - canvas.height/2;
+
+  for (const piece of pieces) {
+    const { x, y } = hexToPixel(piece.x, piece.y);
+    if (Math.hypot(mx - x, my - y) < HEX_SIZE * 0.6) {
+      piece.rotation = (piece.rotation + 60) % 360;
+      socket.emit("move", pieces);
+      drawBoard();
+      break;
+    }
+  }
+});
+
+// Dice roller
 rollBtn.addEventListener("click", () => {
   const result = Math.floor(Math.random() * 6) + 1;
   diceResult.textContent = `Result: ${result}`;
   socket.emit("roll", result);
 });
 
+// Socket sync
 socket.on("move", newPieces => {
   for (let i = 0; i < newPieces.length; i++) {
     pieces[i].x = newPieces[i].x;
     pieces[i].y = newPieces[i].y;
+    pieces[i].rotation = newPieces[i].rotation;
   }
   drawBoard();
 });
