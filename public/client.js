@@ -3,6 +3,14 @@ const canvas = document.getElementById("board");
 const ctx = canvas.getContext("2d");
 const rollBtn = document.getElementById("rollBtn");
 const diceResult = document.getElementById("diceResult");
+const pieceTypeSelect = document.getElementById("pieceTypeSelect");
+const deleteModeBtn = document.getElementById("deleteModeBtn");
+let deleteMode = false;
+
+deleteModeBtn.addEventListener("click", () => {
+  deleteMode = !deleteMode;
+  deleteModeBtn.textContent = deleteMode ? "Exit Delete Mode" : "Toggle Delete Mode";
+});
 
 // Board config
 const HEX_SIZE = 30;  // radius of hex
@@ -129,12 +137,33 @@ canvas.addEventListener("mousedown", e => {
   const rect = canvas.getBoundingClientRect();
   const mx = e.clientX - rect.left - canvas.width / 2;
   const my = e.clientY - rect.top - canvas.height / 2;
+  const hex = pixelToHex(mx, my);
 
-  for (const piece of pieces) {
-    const { x, y } = hexToPixel(piece.x, piece.y);
-    if (Math.hypot(mx - x, my - y) < HEX_SIZE * 0.6) {
-      dragging = piece;
-      break;
+  // Check if clicked on existing piece
+  const clickedPieceIndex = pieces.findIndex(p => p.x === hex.x && p.y === hex.y);
+
+  if (deleteMode) {
+    // If in delete mode and clicked on a piece, remove it
+    if (clickedPieceIndex !== -1) {
+      pieces.splice(clickedPieceIndex, 1);
+      socket.emit("move", pieces);
+      drawBoard();
+    }
+  } else {
+    if (clickedPieceIndex !== -1) {
+      // Start dragging the existing piece
+      dragging = pieces[clickedPieceIndex];
+    } else {
+      // Add new piece of selected type
+      pieces.push({
+        x: hex.x,
+        y: hex.y,
+        color: "blue", // Or set different colors per type if you want
+        type: pieceTypeSelect.value,
+        rotation: 0
+      });
+      socket.emit("move", pieces);
+      drawBoard();
     }
   }
 });
