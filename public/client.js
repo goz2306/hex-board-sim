@@ -141,7 +141,7 @@ for (const piece of pieces) {
   ctx.textBaseline = "middle";
   ctx.fillText(labelMap[piece.type] || "?", canvas.width / 2 + x, canvas.height / 2 + y);
 }
-
+}
 // Drag and drop handling
 let dragging = null;
 canvas.addEventListener("mousedown", e => {
