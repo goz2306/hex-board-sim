@@ -29,9 +29,9 @@ const pieces = [
   { x: 0, y: 0, color: "blue", type: "skeleton", rotation: 0 },
   { x: 2, y: 2, color: "blue", type: "skeleton", rotation: 0 },
   { x: -2, y: 1, color: "blue", type: "skeleton", rotation: 0 },
-  { x: 0, y: -3, color: "red", type: "skeleton", rotation: 0 },
-  { x: 2, y: -3, color: "red", type: "skeleton", rotation: 0 },
-  { x: -2, y: -3, color: "red", type: "skeleton", rotation: 0 },
+  { x: 0, y: -3, color: "red", type: "player", rotation: 0 },
+  { x: 2, y: -3, color: "red", type: "player", rotation: 0 },
+  { x: -2, y: -3, color: "red", type: "player", rotation: 0 },
 
 ];
 
@@ -111,9 +111,7 @@ function inHexRadius(q, r, radius) {
 
 function drawBoard() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (piece.type === "player") {
-  piece.color = "red";
-}
+ 
   const radius = 6;
   // Loop over a bounding box larger than radius
   for (let q = -radius; q <= radius; q++) {
@@ -125,20 +123,23 @@ function drawBoard() {
   }
 
   // Draw pieces as before...
-  for (const piece of pieces) {
-    const baseEdges = [0, 1, 2];
-    const rotationSteps = (piece.rotation / 60) % 6;
-    const highlightEdges = baseEdges.map(e => (e + rotationSteps) % 6);
-
-    drawHex(piece.x, piece.y, HEX_SIZE * 0.6, piece.color, "#333", piece.rotation, highlightEdges);
-
-    const { x, y } = hexToPixel(piece.x, piece.y);
-    ctx.fillStyle = "#fff";
-    ctx.font = "14px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(labelMap[piece.type] || "?", canvas.width / 2 + x, canvas.height / 2 + y);
+for (const piece of pieces) {
+  if (piece.type === "player") {
+    piece.color = "red";
   }
+
+  const baseEdges = [0, 1, 2];
+  const rotationSteps = (piece.rotation / 60) % 6;
+  const highlightEdges = baseEdges.map(e => (e + rotationSteps) % 6);
+
+  drawHex(piece.x, piece.y, HEX_SIZE * 0.6, piece.color, "#333", piece.rotation, highlightEdges);
+
+  const { x, y } = hexToPixel(piece.x, piece.y);
+  ctx.fillStyle = "#fff";
+  ctx.font = "14px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(labelMap[piece.type] || "?", canvas.width / 2 + x, canvas.height / 2 + y);
 }
 
 // Drag and drop handling
@@ -165,13 +166,14 @@ canvas.addEventListener("mousedown", e => {
       dragging = pieces[clickedPieceIndex];
     } else {
       // Add new piece of selected type
-      pieces.push({
-        x: hex.x,
-        y: hex.y,
-        color: "blue", // Or set different colors per type if you want
-        type: pieceTypeSelect.value,
-        rotation: 0
-      });
+     const selectedType = pieceTypeSelect.value;
+pieces.push({
+  x: hex.x,
+  y: hex.y,
+  color: selectedType === "player" ? "red" : "blue", // Ensure player is red
+  type: selectedType,
+  rotation: 0
+});
       socket.emit("move", pieces);
       drawBoard();
     }
